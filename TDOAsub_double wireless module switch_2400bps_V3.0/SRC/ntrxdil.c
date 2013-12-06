@@ -46,6 +46,7 @@ extern MyByte8T 	nano_rcv_dsp;
 extern uint32 int_state;
 unsigned char test1 = 0x00;
 
+uint8 card_in_arry[6] = {0x12,0x00,0x00,0x00,0x00,0x00};
 
 extern RangRs_Que 	rangrs_que;
 
@@ -442,7 +443,7 @@ void NTRXRxReceive (void)
 					comp_ok = 0;
 					rxPayload[len] = source[DIMADDRESS-2];				//source地址的低两字节为卡号
 					rxPayload[(len+1)] = source[DIMADDRESS-1];
-					InQueue(&rangrs_que,(rxPayload+5));						//将数据拷贝到nano管道
+					InQueue(&rangrs_que,(rxPayload+5));					//将数据拷贝到nano管道
 					//memcpy_p(lednum,rxPayload,len);
 					display_count = 0;									//更新显示
 					nano_rcv_dsp = 0;
@@ -480,6 +481,14 @@ void NTRXRxReceive (void)
 			//RangingMode(source);
 //rang_end:
 			lState = RANGING_READY;
+
+			//更新卡进命令
+			card_in_arry[4] = source[DIMADDRESS-2];						//source地址的低两字节为卡号
+			card_in_arry[5] = source[DIMADDRESS-1];
+			InQueue(&rangrs_que,card_in_arry);
+			display_count = 0;											//更新显示
+			nano_rcv_dsp = 0;
+			
 		}else if(lState == RANGING_ANSWER1 && rDest == source[0] && rState == RANGING_ANSWER1)
 		{
                   if(test1 < 0x02)

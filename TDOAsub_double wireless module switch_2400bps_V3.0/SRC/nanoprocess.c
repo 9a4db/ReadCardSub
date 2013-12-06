@@ -62,6 +62,7 @@ extern MyDword32T tiRecal;
 extern MyDword32T	jiffies;
 extern MyBoolT 	wireless_on;
 extern void NTRXAllCalibration (void);
+static void update_cardin(void);
 
 #ifdef DISTCMP_ENABLE
 /**************************************************************************************
@@ -92,8 +93,6 @@ void init_old_dist()
 **************************************************************************************/
 static MyBoolT parse_nanopkg(void)
 {
-//	if((card.sub = rangrs_one_pkg[0]) != sub.id)	//判断是否发给本机
-//		return FALSE;
 	card.com = rangrs_one_pkg[0];					//标识卡发送来的命令
 	card.id = (uint16)rangrs_one_pkg[4] + (((uint16)rangrs_one_pkg[5])<<8);
 	if((card.id&0x1fff) > CARDID_MAX)
@@ -101,10 +100,14 @@ static MyBoolT parse_nanopkg(void)
 
 	switch(card.com){
 		case 0x21:									//呼叫确认命令
-			detach_call_card(card.id);				//则将此卡从待呼叫链表脱离
+			detach_call_card(card.id&0x1fff);		//则将此卡从待呼叫链表脱离
 			//.............是否回送给PC待定
 			return FALSE;
 		case 0xFF:									//搜索附近分站命令
+			return FALSE;
+		case 0x12:									//更新卡进命令
+			update_LED();
+			update_cardin();
 			return FALSE;
 		case 0x11:									//求助命令
 		case 0x00:									//普通测距结果包命令
